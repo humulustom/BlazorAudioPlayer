@@ -1,10 +1,15 @@
 ﻿using Microsoft.JSInterop;
 using System;
+using System.Threading.Tasks;
 
 namespace BlazorAudioPlayer.Wrappers
 {
-    class HowlerAudioWrapper : IAudioWrapper, IDisposable
+    public class HowlerAudioWrapper : IAudioWrapper, IDisposable
     {
+        public event EventHandler<string> AudioLoadedEvent;
+        public event EventHandler AudioPausedEvent;
+        public event EventHandler AudioStartedEvent;
+
         private readonly IJSRuntime _jsRuntime;
         private readonly Guid _guid = Guid.NewGuid();
 
@@ -13,14 +18,60 @@ namespace BlazorAudioPlayer.Wrappers
             _jsRuntime = jSRuntime;
         }
 
-        public void PlayAudio(string audioUrl)
+        public Task PlayAudio(string audioUrl)
         {
-            _jsRuntime.InvokeVoidAsync("howlerAudioPlayers.playAudio", _guid.ToString(), audioUrl);
+            return _jsRuntime.InvokeVoidAsync(
+                "howlerAudioPlayers.playAudio",
+                _guid.ToString(),
+                audioUrl,
+                DotNetObjectReference.Create(this)).AsTask();
         }
 
-        public void StopAudio()
+        public Task StopAudio()
         {
-            _jsRuntime.InvokeVoidAsync("howlerAudioPlayers.stopAudio", _guid.ToString());
+            return _jsRuntime.InvokeVoidAsync("howlerAudioPlayers.stopAudio", _guid.ToString()).AsTask();
+        }
+
+        public async Task PauseCurrentAudio()
+        {
+            await _jsRuntime.InvokeVoidAsync("howlerAudioPlayers.pauseAudio", _guid.ToString());
+        }
+
+        public Task ResumeCurrentAudio()
+        {
+            return _jsRuntime.InvokeVoidAsync("howlerAudioPlayers.resumeAudio", _guid.ToString()).AsTask();
+        }
+
+        public async Task<TimeSpan> GetCurrentAudioDuration()
+        {
+            double durationInSeconds = 0.0;
+            try
+            {
+                durationInSeconds = await _jsRuntime.InvokeAsync<double>("howlerAudioPlayers.getCurrentAudioDuration", _guid.ToString());
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+            return TimeSpan.FromSeconds(durationInSeconds);
+        }
+
+        [JSInvokable]
+        public void AudioLoaded(string audioUrl)
+        {
+            AudioLoadedEvent?.Invoke(this, audioUrl);
+        }
+
+        [JSInvokable]
+        public void AudioPaused()
+        {
+            AudioPausedEvent?.Invoke(this, EventArgs.Empty);
+        }
+
+        [JSInvokable]
+        public void AudioPlayed()
+        {
+            AudioStartedEvent?.Invoke(this, EventArgs.Empty);
         }
 
         #region IDisposable Support

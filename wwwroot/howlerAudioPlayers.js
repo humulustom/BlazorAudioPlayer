@@ -3,16 +3,29 @@
     var audioPlayers = {};
 
     window.howlerAudioPlayers = {
-        playAudio: function (playerGuid, audioUrl) {
+        playAudio (playerGuid, audioUrl, dotnetObject) {
+
             if (!(playerGuid in audioPlayers))
             {
                 addPlayer(playerGuid, audioUrl)
             }
             
-            try{
+            try {
                 var howl = audioPlayers[playerGuid];
+
                 howl.unload(true);
+                howl.off();
                 howl._src = audioUrl;
+
+                howl.on('load', function() {
+                    dotnetObject.invokeMethodAsync('AudioLoaded', audioUrl);
+                });
+                howl.on('play', function () {
+                    dotnetObject.invokeMethodAsync('AudioPlayed');
+                });
+                howl.on('pause', function () {
+                    dotnetObject.invokeMethodAsync('AudioPaused');
+                });
                 howl.load();
                 howl.play();
             } catch(error) {
@@ -20,7 +33,7 @@
             }
         },
 
-        stopAudio: function (playerGuid, playerId) {
+        stopAudio (playerGuid) {
             if (!(playerGuid in audioPlayers))
             {
                 return; //nothing to stop
@@ -32,6 +45,33 @@
                 howl.stop();
             } catch(error) {
                 console.log(error);
+            }
+        },
+
+        pauseAudio (playerGuid) {
+            if (!(playerGuid in audioPlayers))
+            {
+                return; //TODO: Add some error event
+            }
+
+            try {
+                var howl = audioPlayers[playerGuid];
+                howl.pause();
+            } catch (error) {
+                console.log(error); //TODO: Add some error event
+            }
+        },
+
+        resumeAudio (playerGuid, seekPosition) {
+            if (!(playerGuid in audioPlayers)) {
+                return; //TODO: Add some error event
+            }
+
+            try {
+                var howl = audioPlayers[playerGuid];
+                howl.play();             
+            } catch (error) {
+                console.log(error); //TODO: Add some error event
             }
         },
 
@@ -49,14 +89,34 @@
             } catch(error) {
                 console.log(error);
             }
+        },
+
+        getCurrentAudioDuration(playerGuid) {
+            if (!(playerGuid in audioPlayers)) {
+                return -1; //nothing to stop
+            }
+
+            try {
+                var howl = audioPlayers[playerGuid];
+                var duration = howl.duration();
+                return duration;
+            } catch (error) {
+                console.log(error);
+                return -1;
+            }
         }
     };
     
     function addPlayer (guid, audioUrl) {
-        var howl = new Howl({
-            src: [audioUrl],
-            html5: true
-        });
-        audioPlayers[guid] = howl;
+        try {
+            var howl = new Howl({
+                src: [audioUrl],
+                html5: true
+            });
+            audioPlayers[guid] = howl;
+        }
+        catch (error) {
+            console.log(error);
+        }
     }
 })();
