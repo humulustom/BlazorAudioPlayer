@@ -14,7 +14,7 @@ namespace BlazorAudioPlayer.Wrappers
         Task PlayAudio(string audioUrl);
         Task PauseCurrentAudio();
         Task ResumeCurrentAudio();
-
         Task<TimeSpan> GetCurrentAudioDuration();
+        Task<TimeSpan> GetCurrentAudioPosition();
     }
 }

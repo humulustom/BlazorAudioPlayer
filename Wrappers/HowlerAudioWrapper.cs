@@ -32,9 +32,9 @@ namespace BlazorAudioPlayer.Wrappers
             return _jsRuntime.InvokeVoidAsync("howlerAudioPlayers.stopAudio", _guid.ToString()).AsTask();
         }
 
-        public async Task PauseCurrentAudio()
+        public Task PauseCurrentAudio()
         {
-            await _jsRuntime.InvokeVoidAsync("howlerAudioPlayers.pauseAudio", _guid.ToString());
+            return _jsRuntime.InvokeVoidAsync("howlerAudioPlayers.pauseAudio", _guid.ToString()).AsTask();
         }
 
         public Task ResumeCurrentAudio()
@@ -44,16 +44,14 @@ namespace BlazorAudioPlayer.Wrappers
 
         public async Task<TimeSpan> GetCurrentAudioDuration()
         {
-            double durationInSeconds = 0.0;
-            try
-            {
-                durationInSeconds = await _jsRuntime.InvokeAsync<double>("howlerAudioPlayers.getCurrentAudioDuration", _guid.ToString());
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-            }
+            var durationInSeconds = await _jsRuntime.InvokeAsync<double>("howlerAudioPlayers.getCurrentAudioDuration", _guid.ToString());
             return TimeSpan.FromSeconds(durationInSeconds);
+        }
+
+        public async Task<TimeSpan> GetCurrentAudioPosition()
+        {
+            var positionInSeconds = await _jsRuntime.InvokeAsync<double>("howlerAudioPlayers.getCurrentAudioPosition", _guid.ToString());
+            return TimeSpan.FromSeconds(positionInSeconds);
         }
 
         [JSInvokable]

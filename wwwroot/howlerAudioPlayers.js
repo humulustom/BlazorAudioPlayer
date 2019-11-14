@@ -104,6 +104,20 @@
                 console.log(error);
                 return -1;
             }
+        },
+
+        getCurrentAudioPosition(playerGuid) {
+            if (!(playerGuid in audioPlayers)) {
+                return -1; //nothing to stop
+            }
+
+            try {
+                var howl = audioPlayers[playerGuid];
+                return howl.seek();
+            } catch (error) {
+                console.log(error);
+                return -1;
+            }
         }
     };
     

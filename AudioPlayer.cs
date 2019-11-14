@@ -81,6 +81,11 @@ namespace BlazorAudioPlayer
             return _audioWrapper.GetCurrentAudioDuration();
         }
 
+        public Task<TimeSpan> GetCurrentAudioPosition()
+        {
+            return _audioWrapper.GetCurrentAudioPosition();
+        }
+
         #region IDisposable Support
         private bool disposedValue = false; // To detect redundant calls
 

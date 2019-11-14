@@ -15,5 +15,6 @@ namespace BlazorAudioPlayer
         Task PauseCurrentAudio();
         Task ResumeCurrentAudio();
         Task<TimeSpan> GetCurrentAudioDuration();
+        Task<TimeSpan> GetCurrentAudioPosition();
     }
 }
